@@ -1,0 +1,26 @@
+# Ignore model artifacts
+*.pt
+*.pth
+*.ckpt
+*.bin
+*.safetensors
+checkpoints/
+Endoscopy/checkpoints/
+
+# Ignore datasets/outputs
+VCE Classification/kvasir-capsule-labeled-images/
+VCE Classification/outputs/
+
+# Python/cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# Misc
+.git/
+
+# Local HF space clone
+Endoscopy/

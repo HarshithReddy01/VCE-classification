@@ -1,0 +1,144 @@
+experiment_name: ladl_ablation_loss
+
+dataset:
+  root: ./kvasir-capsule-labeled-images
+  metadata_path: ./kvasir-capsule-labeled-images/metadata.csv
+  image_subdir: ""
+  classes: []
+  use_filtered_classes: false
+  min_class_count: 0
+  bbox_format: auto
+  allow_missing_bbox: true
+  fallback_scan: true
+
+splits:
+  strategy: stratified_group
+  train_ratio: 0.7
+  val_ratio: 0.15
+  test_ratio: 0.15
+  num_folds: 5
+  repeated_runs: 1
+  group_column: video_id
+  label_column: label
+  split_dir: ./outputs/splits/ablation_loss
+  random_state: 42
+
+transforms:
+  image_size: 224
+  local_image_size: 224
+  crop_expand_ratio: 1.5
+  train:
+    hflip_prob: 0.0
+    rotation_deg: 7.0
+    color_jitter:
+      brightness: 0.08
+      contrast: 0.08
+      saturation: 0.05
+      hue: 0.02
+    blur_prob: 0.1
+    blur_kernel: 3
+    noise_std: 0.01
+  eval:
+    hflip_prob: 0.0
+    rotation_deg: 0.0
+    color_jitter:
+      brightness: 0.0
+      contrast: 0.0
+      saturation: 0.0
+      hue: 0.0
+    blur_prob: 0.0
+    blur_kernel: 3
+    noise_std: 0.0
+  normalize:
+    mean: [0.485, 0.456, 0.406]
+    std: [0.229, 0.224, 0.225]
+  attention:
+    sigma_scale: 0.35
+    background: 0.15
+    normalize: true
+
+model:
+  mode: dual_view
+  share_backbone: true
+  backbone:
+    name: dinov2
+    model_name: vit_base_patch14_dinov2.lvd142m
+    pretrained: true
+    drop_path_rate: 0.1
+    freeze_stem: false
+    gradient_checkpointing: false
+  fallback_backbone:
+    name: resnet50
+    model_name: resnet50
+    pretrained: true
+  embedding_dim: 512
+  projection_dim: 256
+  fusion_hidden_dim: 512
+  dropout: 0.2
+  use_bbox_attention: true
+  use_aux_heads: true
+  use_projection_bn: true
+  bbox_attention:
+    mode: additive
+    alpha: 0.8
+    temperature: 0.7
+    learnable_scale: true
+  view_consistency:
+    type: cosine
+  attention_alignment:
+    enabled: true
+
+loss:
+  primary: focal
+  lambda_cls: 1.0
+  lambda_supcon: 0.15
+  lambda_view: 0.1
+  lambda_attn: 0.05
+  lambda_aux: 0.25
+  focal_gamma: 2.0
+  weighted_ce_power: 0.5
+  supcon_temperature: 0.1
+  label_smoothing: 0.02
+  logit_adjustment_tau: 0.0
+  consistency_on: embeddings
+  consistency_loss: mse
+  consistency_weight_missing_bbox: 0.25
+
+sampler:
+  class_balanced: true
+  beta: 0.999
+
+optimizer:
+  name: adamw
+  lr: 1.0e-4
+  weight_decay: 1.0e-4
+  backbone_lr_scale: 0.3
+
+scheduler:
+  name: cosine
+  epochs: 20
+  warmup_epochs: 2
+  min_lr: 1.0e-6
+
+loader:
+  batch_size: 16
+  eval_batch_size: 32
+  num_workers: 4
+  pin_memory: true
+  drop_last: false
+
+metrics:
+  bootstrap_samples: 100
+  tail_percentile: 0.4
+  save_roc_pr: true
+  save_embeddings: true
+
+runtime:
+  seed: 42
+  deterministic: true
+  device: cuda
+  amp: true
+  grad_clip_norm: 5.0
+  log_interval: 20
+  output_dir: ./outputs/ladl_ablation_loss
+  resume_checkpoint: ""
