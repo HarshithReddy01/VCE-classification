@@ -22,5 +22,3 @@ venv/
 # Misc
 .git/
 
-# Local HF space clone
-Endoscopy/
