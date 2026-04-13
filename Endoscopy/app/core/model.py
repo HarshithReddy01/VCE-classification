@@ -40,7 +40,7 @@ class SpatialAttention(nn.Module):
         super().__init__()
         self.alpha = nn.Parameter(torch.ones(()))
         self.proj = nn.Sequential(
-            nn.Conv2d(1, 8, kernel_size=3, padding=1),
+            nn.Conv2d(1, 8, kernel_size=3, padding=1, bias=False),
             nn.ReLU(inplace=True),
             nn.Conv2d(8, 1, kernel_size=1),
         )
