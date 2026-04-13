@@ -66,6 +66,18 @@ app = FastAPI(
 app.include_router(predict_router, prefix="/api/v1", tags=["inference"])
 
 
+@app.get("/", tags=["ops"], summary="Space root — API info")
+async def root() -> dict:
+    """Hugging Face and browsers hit `/` by default; without this route they would see 404."""
+    return {
+        "service": "VCE capsule endoscopy classifier API",
+        "status": "running",
+        "docs": "/docs",
+        "health": "/health",
+        "predict": "POST /api/v1/predict (multipart image upload)",
+    }
+
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(
